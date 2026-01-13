@@ -1,29 +1,28 @@
-
 import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 
 export async function POST(request: Request) {
-    const { priceId = 'price_123', email } = await request.json(); // In real app, get proper price ID
+    const { email } = await request.json();
 
     // If no key or placeholder, return mock success url immediately for testing
     if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes('placeholder')) {
         console.warn("STRIPE_SECRET_KEY missing. Returning mock URL.");
-        // Return a URL that simulates success (e.g., back to home with ?success=true)
         return NextResponse.json({ url: `${request.headers.get('origin')}/?success=true` });
     }
 
+    const stripe = getStripe();
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card', 'gcash', 'paymaya', 'grabpay'] as any,
             line_items: [
                 {
                     price_data: {
-                        currency: 'php', // Localize to PHP for GCash/Maya support
+                        currency: 'php',
                         product_data: {
                             name: 'DestiPicker Unlimited',
                             description: '2 months access to unlimited decisions',
                         },
-                        unit_amount: 11900, // ₱119.00 (Approx $2)
+                        unit_amount: 11900,
                     },
                     quantity: 1,
                 },

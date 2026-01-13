@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import Stripe from "stripe";
-
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-        apiVersion: "2025-01-27.acacia" as any,
-    });
-
     try {
+        const stripe = getStripe();
         const supabase = await createClient();
 
         // Get authenticated user
@@ -38,7 +34,6 @@ export async function POST(request: NextRequest) {
                 await stripe.subscriptions.cancel(userData.stripe_subscription_id);
             } catch (stripeError: any) {
                 console.warn("Stripe cancellation error:", stripeError.message);
-                // Continue even if Stripe fails - update local state
             }
         }
 

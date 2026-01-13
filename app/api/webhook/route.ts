@@ -1,8 +1,7 @@
-
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { stripe } from '@/lib/stripe';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getStripe } from '@/lib/stripe';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -11,6 +10,7 @@ export async function POST(req: Request) {
     let event;
 
     try {
+        const stripe = getStripe();
         // Verify webhook signature (requires STRIPE_WEBHOOK_SECRET)
         if (process.env.STRIPE_WEBHOOK_SECRET) {
             event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
@@ -28,12 +28,10 @@ export async function POST(req: Request) {
         const session = event.data.object as any;
         const userEmail = session.customer_email;
 
-        // In a real app, you might match by 'client_reference_id' or metadata containing User ID
-        // For MVP, assuming email match is sufficient if user is logged in with same email
-
         if (userEmail) {
+            const supabaseAdmin = getSupabaseAdmin();
             const { error } = await supabaseAdmin
-                .from('users') // or 'profiles'
+                .from('users')
                 .update({ is_premium: true })
                 .eq('email', userEmail);
 
