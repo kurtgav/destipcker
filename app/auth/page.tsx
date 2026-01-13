@@ -1,14 +1,22 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StarsBackground } from "@/components/ui/StarsBackground";
 import { ShootingStars } from "@/components/ui/ShootingStars";
 import { Logo } from "@/components/ui/Logo";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function AuthPage() {
+    return (
+        <Suspense fallback={null}>
+            <AuthContent />
+        </Suspense>
+    );
+}
+
+function AuthContent() {
     const [mode, setMode] = useState<"login" | "signup">("login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,6 +25,14 @@ export default function AuthPage() {
     const [error, setError] = useState("");
     const router = useRouter();
     const supabase = createClient();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const errorMsg = searchParams.get("error");
+        if (errorMsg) {
+            setError(errorMsg);
+        }
+    }, [searchParams]);
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -154,13 +170,15 @@ export default function AuthPage() {
 
                     {/* Error Message */}
                     {error && (
-                        <motion.p
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-red-400 text-sm"
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-4"
                         >
-                            {error}
-                        </motion.p>
+                            <p className="text-red-400 text-sm text-center">
+                                {error}
+                            </p>
+                        </motion.div>
                     )}
 
                     {/* Submit Button */}

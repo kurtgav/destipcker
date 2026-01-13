@@ -14,6 +14,7 @@ export default function SetupPage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const supabase = createClient();
 
@@ -41,23 +42,29 @@ export default function SetupPage() {
         } else {
             // Save to database
             setLoading(true);
+            setError(null);
             try {
-                const { error } = await supabase
+                if (!userId) throw new Error("User not authenticated");
+
+                const { error: upsertError } = await supabase
                     .from("users")
-                    .update({
+                    .upsert({
+                        id: userId,
                         username,
                         birthday,
                         location,
                         currency,
-                    })
-                    .eq("id", userId);
+                        updated_at: new Date().toISOString(),
+                    }, {
+                        onConflict: 'id'
+                    });
 
-                if (error) throw error;
+                if (upsertError) throw upsertError;
 
                 router.push("/home");
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Error saving profile:", err);
-                alert("Failed to save profile. Please try again.");
+                setError(err.message || "Failed to save profile. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -93,8 +100,8 @@ export default function SetupPage() {
                         <div
                             key={i}
                             className={`h-1 rounded-full transition-all duration-500 ${step >= i
-                                    ? "w-8 bg-[#88B04B] shadow-[0_0_10px_rgba(136,176,75,0.5)]"
-                                    : "w-2 bg-white/20"
+                                ? "w-8 bg-[#88B04B] shadow-[0_0_10px_rgba(136,176,75,0.5)]"
+                                : "w-2 bg-white/20"
                                 }`}
                         />
                     ))}
@@ -224,6 +231,9 @@ export default function SetupPage() {
                                         </option>
                                     ))}
                                 </select>
+                                {error && (
+                                    <p className="text-red-400 text-sm text-center">{error}</p>
+                                )}
                                 <button
                                     onClick={handleNext}
                                     disabled={loading || !isStepValid()}
