@@ -23,4 +23,4 @@ export const getStripe = () => {
 };
 
 // For backward compatibility while we refactor, but deprecated
-export const stripe = getStripe();
+// export const stripe = getStripe();

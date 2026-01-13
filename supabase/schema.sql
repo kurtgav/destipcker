@@ -40,23 +40,28 @@ alter table public.users enable row level security;
 alter table public.decisions enable row level security;
 
 -- Users table policies
+drop policy if exists "Public profiles are viewable by everyone." on public.users;
 create policy "Public profiles are viewable by everyone."
   on public.users for select
   using ( true );
 
+drop policy if exists "Users can insert their own profile." on public.users;
 create policy "Users can insert their own profile."
   on public.users for insert
   with check ( auth.uid() = id );
 
+drop policy if exists "Users can update own profile." on public.users;
 create policy "Users can update own profile."
   on public.users for update
   using ( auth.uid() = id );
 
 -- Decisions table policies
+drop policy if exists "Users can view their own decisions." on public.decisions;
 create policy "Users can view their own decisions."
   on public.decisions for select
   using ( auth.uid() = user_id );
 
+drop policy if exists "Users can insert their own decisions." on public.decisions;
 create policy "Users can insert their own decisions."
   on public.decisions for insert
   with check ( auth.uid() = user_id );

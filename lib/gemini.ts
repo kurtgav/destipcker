@@ -1,14 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Buffer } from "buffer";
 
-const apiKey = process.env.GEMINI_API_KEY;
+export const getGeminiModel = () => {
+    const apiKey = process.env.GEMINI_API_KEY;
 
-if (!apiKey) console.warn("Gemini: API Key NOT FOUND in env");
-else console.log("Gemini: API Key found");
+    if (!apiKey || apiKey.includes('placeholder')) {
+        console.warn("Gemini: API Key NOT FOUND or placeholder in env");
+        return null;
+    }
 
-export const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
-
-export const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) : null;
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+};
 
 // Helper to convert file/blob to inline data part
 export async function fileToGenerativePart(file: Blob) {

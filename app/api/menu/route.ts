@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
         // 5. Process with Gemini
         let resultText = "";
 
-        const { model, fileToGenerativePart } = await import("@/lib/gemini");
+        const { getGeminiModel, fileToGenerativePart } = await import("@/lib/gemini");
+        const model = getGeminiModel();
 
         if (!model) {
             console.warn("Gemini API Key missing. Using mock response.");
