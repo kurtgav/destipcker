@@ -1,0 +1,38 @@
+"use client";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { useContext, useRef } from "react";
+
+// Fix for AnimatePresence with Next.js App Router frozen router context
+function FrozenRouter(props: { children: React.ReactNode }) {
+    const context = useContext(LayoutRouterContext ?? {});
+    const frozen = useRef(context).current;
+
+    return (
+        <LayoutRouterContext.Provider value={frozen}>
+            {props.children}
+        </LayoutRouterContext.Provider>
+    );
+}
+
+export default function PageTransition({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+
+    return (
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={pathname}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }} // Subtle zoom out on exit
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} // Apple-esque ease
+                className="w-full h-full"
+            >
+                {/* <FrozenRouter>{children}</FrozenRouter> */}
+                {/* Simplified for stability without complex freezing logic */}
+                {children}
+            </motion.div>
+        </AnimatePresence>
+    );
+}
